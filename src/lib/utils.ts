@@ -35,6 +35,22 @@ export function ultimoDia(mesAno: string): string {
   return `${mesAno}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+export function statusContaPagar(dataVencimento: string, pago: boolean): "paga" | "vencida" | "avencer" | "pendente" {
+  if (pago) return "paga";
+  const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+  const venc = new Date(dataVencimento + "T12:00:00");
+  const diff = Math.floor((venc.getTime() - hoje.getTime()) / 86400000);
+  if (diff < 0) return "vencida";
+  if (diff <= 7) return "avencer";
+  return "pendente";
+}
+
+export function diasParaData(dataVencimento: string): number {
+  const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+  const venc = new Date(dataVencimento + "T12:00:00");
+  return Math.floor((venc.getTime() - hoje.getTime()) / 86400000);
+}
+
 export function diasParaVencer(diaVencimento: number): number {
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);

@@ -42,3 +42,17 @@ export type PagamentoConta = {
 export type ContaFixaComStatus = ContaFixa & {
   pagamento?: PagamentoConta;
 };
+
+export type ContaPagar = {
+  id: string;
+  empresa_id: string;
+  descricao: string;
+  fornecedor?: string;
+  valor: number;
+  data_vencimento: string;
+  categoria: string;
+  pago: boolean;
+  data_pagamento?: string;
+  lancou_caixa: boolean;
+  created_at: string;
+};

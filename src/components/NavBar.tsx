@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { LayoutDashboard, Wallet, CalendarClock, BarChart2, LineChart, LogOut } from "lucide-react";
+import { LayoutDashboard, Wallet, CalendarClock, BarChart2, LineChart, Receipt, LogOut } from "lucide-react";
 
 const NAV = [
-  { href: "/dashboard",    label: "Início",    Icon: LayoutDashboard },
-  { href: "/caixa",        label: "Caixa",     Icon: Wallet },
-  { href: "/contas-fixas", label: "Fixas",     Icon: CalendarClock },
-  { href: "/relatorio",    label: "Relatório", Icon: LineChart },
+  { href: "/dashboard",       label: "Início",  Icon: LayoutDashboard },
+  { href: "/caixa",           label: "Caixa",   Icon: Wallet },
+  { href: "/contas-fixas",    label: "Fixas",   Icon: CalendarClock },
+  { href: "/contas-a-pagar",  label: "A Pagar", Icon: Receipt },
+  { href: "/relatorio",       label: "Dados",   Icon: LineChart },
 ];
 
 export default function NavBar() {
