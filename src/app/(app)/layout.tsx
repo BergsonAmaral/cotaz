@@ -25,7 +25,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-slate-100">
       <NavBar />
-      <main className="pt-safe pb-24 min-h-screen">
+      <main className="pt-safe min-h-screen" style={{ paddingBottom: "calc(6rem + env(safe-area-inset-bottom, 0px))" }}>
         {children}
       </main>
     </div>

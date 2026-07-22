@@ -182,7 +182,8 @@ export default function CaixaPage() {
 
       {/* FAB */}
       <button onClick={() => setSheet(true)}
-        className="fixed bottom-20 right-4 z-30 h-14 w-14 rounded-full bg-blue-900 text-white shadow-xl shadow-blue-900/40 flex items-center justify-center hover:bg-blue-800 active:scale-95 transition">
+        className="fixed right-4 z-30 h-14 w-14 rounded-full bg-blue-900 text-white shadow-xl shadow-blue-900/40 flex items-center justify-center hover:bg-blue-800 active:scale-95 transition"
+        style={{ bottom: "calc(5.5rem + env(safe-area-inset-bottom, 0px))" }}>
         <Plus className="h-6 w-6" />
       </button>
 
@@ -190,8 +191,8 @@ export default function CaixaPage() {
       {sheet && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm fade-in"
           onClick={e => { if (e.target === e.currentTarget) setSheet(false); }}>
-          <div className="w-full max-w-lg bg-white rounded-t-[2rem] px-6 pt-4 pb-10 shadow-2xl slide-up"
-            style={{ paddingBottom: "max(2.5rem, env(safe-area-inset-bottom))" }}>
+          <div className="w-full max-w-lg bg-white rounded-t-[2rem] px-6 pt-4 shadow-2xl slide-up overflow-y-auto"
+            style={{ maxHeight: "92dvh", paddingBottom: "max(2.5rem, env(safe-area-inset-bottom, 0px))" }}>
 
             {/* Drag handle */}
             <div className="mx-auto mb-5 h-1 w-12 rounded-full bg-slate-200" />

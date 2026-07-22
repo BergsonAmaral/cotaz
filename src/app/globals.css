@@ -31,9 +31,7 @@ body {
 /* Impede zoom ao tocar em inputs no iOS (fonte mínima 16px) */
 input, select, textarea {
   font-size: 16px !important;
-  /* Remove estilo nativo no iOS */
   -webkit-appearance: none;
-  border-radius: 0;
 }
 
 /* Remove setas do input number */
