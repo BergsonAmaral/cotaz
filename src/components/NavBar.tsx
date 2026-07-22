@@ -18,8 +18,12 @@ export default function NavBar() {
   return (
     <>
       {/* Top header */}
-      <header className="fixed top-0 inset-x-0 z-40 h-14 flex items-center justify-between px-5"
-        style={{ background: "linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%)" }}>
+      <header className="fixed top-0 inset-x-0 z-40 flex items-center justify-between px-5"
+        style={{
+          background: "linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%)",
+          height: "calc(3.5rem + env(safe-area-inset-top, 0px))",
+          paddingTop: "env(safe-area-inset-top, 0px)",
+        }}>
         <div className="flex items-center gap-2.5">
           <div className="h-7 w-7 rounded-lg bg-white/15 flex items-center justify-center">
             <BarChart2 className="h-4 w-4 text-white" strokeWidth={2} />
@@ -38,8 +42,7 @@ export default function NavBar() {
       </header>
 
       {/* Bottom nav */}
-      <nav className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-slate-100"
-        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
+      <nav className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-slate-100 nav-bottom">
         <div className="flex max-w-lg mx-auto">
           {NAV.map(({ href, label, Icon }) => {
             const active = pathname === href;

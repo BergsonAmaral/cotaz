@@ -25,7 +25,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-slate-100">
       <NavBar />
-      <main className="pt-14 pb-20 min-h-screen">
+      <main className="pt-safe pb-24 min-h-screen">
         {children}
       </main>
     </div>
