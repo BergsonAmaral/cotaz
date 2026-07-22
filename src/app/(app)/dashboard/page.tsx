@@ -145,7 +145,7 @@ export default function DashboardPage() {
   const alertas   = contas.filter(c => ["vencida","avencer"].includes(statusConta(c.dia_vencimento, !!c.pagamento?.pago)));
   const pagas     = contas.filter(c => c.pagamento?.pago);
   const totalFixas = contas.reduce((s, c) => s + c.valor, 0);
-  const pctMeta   = meta > 0 ? Math.min((entradas / meta) * 100, 100) : 0;
+  const pctMeta   = meta > 0 ? Math.min((Math.max(saldo, 0) / meta) * 100, 100) : 0;
   const hora      = new Date().getHours();
   const saudacao  = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
   const recentes  = [...trans].sort((a, b) => b.data.localeCompare(a.data)).slice(0, 5);
@@ -196,7 +196,7 @@ export default function DashboardPage() {
               <div className="h-8 w-8 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
                 <Target className="h-4 w-4 text-purple-600" />
               </div>
-              <p className="text-sm font-black text-slate-800">Meta de Faturamento</p>
+              <p className="text-sm font-black text-slate-800">Meta de Lucro</p>
             </div>
             <button onClick={() => { setMetaInput(meta > 0 ? meta.toString() : ""); setEditMeta(true); }}
               className="flex items-center gap-1 text-xs font-bold text-blue-700 hover:underline">
@@ -207,22 +207,29 @@ export default function DashboardPage() {
           {meta > 0 ? (
             <>
               <div className="flex items-end justify-between mb-2">
-                <p className="text-xl font-black text-slate-900">{formatBRL(entradas)}</p>
-                <p className="text-xs text-slate-400 mb-0.5">de {formatBRL(meta)}</p>
+                <div>
+                  <p className="text-xl font-black text-slate-900">{formatBRL(saldo)}</p>
+                  <p className="text-[10px] text-slate-400 font-semibold">lucro atual</p>
+                </div>
+                <p className="text-xs text-slate-400 mb-0.5">meta {formatBRL(meta)}</p>
               </div>
               <div className="h-3 rounded-full bg-slate-100 overflow-hidden">
                 <div className="h-full rounded-full transition-all duration-700"
                   style={{
                     width: `${pctMeta}%`,
-                    background: entradas >= meta
+                    background: saldo >= meta
                       ? "linear-gradient(90deg, #10b981, #059669)"
-                      : "linear-gradient(90deg, #7c3aed, #a78bfa)",
+                      : saldo > 0
+                        ? "linear-gradient(90deg, #7c3aed, #a78bfa)"
+                        : "#f87171",
                   }} />
               </div>
               <p className="mt-2 text-xs font-semibold text-slate-500">
-                {entradas >= meta
-                  ? `Meta atingida! Superou em ${formatBRL(entradas - meta)}`
-                  : `Faltam ${formatBRL(meta - entradas)} · ${Math.round(pctMeta)}% concluído`
+                {saldo < 0
+                  ? `No negativo — reveja as saídas`
+                  : saldo >= meta
+                    ? `Meta batida! Lucrou ${formatBRL(saldo - meta)} a mais`
+                    : `Faltam ${formatBRL(meta - saldo)} · ${Math.round(pctMeta)}% concluído`
                 }
               </p>
             </>
@@ -377,7 +384,7 @@ export default function DashboardPage() {
             style={{ maxHeight: "60dvh", paddingBottom: "max(2rem, env(safe-area-inset-bottom, 0px))" }}>
             <div className="mx-auto mb-5 h-1 w-12 rounded-full bg-slate-200" />
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-xl font-black text-slate-900">Meta de faturamento</h2>
+              <h2 className="text-xl font-black text-slate-900">Meta de lucro mensal</h2>
               <button onClick={() => setEditMeta(false)}
                 className="h-8 w-8 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-400 transition">
                 <X className="h-4 w-4" />
@@ -396,7 +403,7 @@ export default function DashboardPage() {
             <button onClick={salvarMeta}
               className="w-full flex items-center justify-center gap-2 rounded-2xl py-4 text-sm font-bold text-white transition"
               style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)" }}>
-              <Target className="h-4 w-4" /> Salvar meta
+              <Target className="h-4 w-4" /> Salvar meta de lucro
             </button>
           </div>
         </div>
