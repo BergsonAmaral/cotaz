@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import {
@@ -10,7 +10,7 @@ import {
 import type { Transacao } from "@/types";
 import { CategoryIcon } from "@/components/CategoryIcon";
 import {
-  ChevronLeft, ChevronRight, Plus, Trash2, X, Loader2, TrendingUp, TrendingDown,
+  ChevronLeft, ChevronRight, Plus, Trash2, X, Loader2, TrendingUp, TrendingDown, Pencil,
 } from "lucide-react";
 
 function agrupar(list: Transacao[]) {
@@ -30,12 +30,13 @@ export default function CaixaPage() {
   const [sheet, setSheet]   = useState(false);
   const [saving, setSaving] = useState(false);
   const [filtro, setFiltro] = useState<"todos" | "entrada" | "saida">("todos");
+  const [editando, setEditando] = useState<Transacao | null>(null);
 
-  const [tipo, setTipo]       = useState<"entrada" | "saida">("entrada");
-  const [valor, setValor]     = useState("");
-  const [cat, setCat]         = useState("");
-  const [desc, setDesc]       = useState("");
-  const [data, setData]       = useState(new Date().toISOString().slice(0, 10));
+  const [tipo, setTipo]   = useState<"entrada" | "saida">("entrada");
+  const [valor, setValor] = useState("");
+  const [cat, setCat]     = useState("");
+  const [desc, setDesc]   = useState("");
+  const [data, setData]   = useState(new Date().toISOString().slice(0, 10));
 
   useEffect(() => { if (user) load(); }, [user, mesAno]);
 
@@ -49,23 +50,50 @@ export default function CaixaPage() {
     setLoading(false);
   }
 
+  function abrirNovo() {
+    setEditando(null);
+    setTipo("entrada"); setValor(""); setCat(""); setDesc("");
+    setData(new Date().toISOString().slice(0, 10));
+    setSheet(true);
+  }
+
+  function abrirEdicao(t: Transacao) {
+    setEditando(t);
+    setTipo(t.tipo);
+    setValor(t.valor.toFixed(2).replace(".", ","));
+    setCat(t.categoria);
+    setDesc(t.descricao ?? "");
+    setData(t.data);
+    setSheet(true);
+  }
+
+  function fecharSheet() {
+    setSheet(false);
+    setEditando(null);
+  }
+
   async function salvar() {
     const num = parseFloat(valor.replace(",", "."));
     if (!cat || isNaN(num) || num <= 0) return;
     setSaving(true);
-    const { error } = await supabase.from("caixa_transacoes").insert({
-      empresa_id: user!.id, tipo, valor: num,
-      categoria: cat, descricao: desc.trim() || null, data,
-    });
-    if (!error) {
-      setSheet(false); setValor(""); setCat(""); setDesc("");
-      setTipo("entrada"); setData(new Date().toISOString().slice(0, 10));
-      load();
+
+    if (editando) {
+      const { error } = await supabase.from("caixa_transacoes").update({
+        tipo, valor: num, categoria: cat, descricao: desc.trim() || null, data,
+      }).eq("id", editando.id);
+      if (!error) { fecharSheet(); load(); }
+    } else {
+      const { error } = await supabase.from("caixa_transacoes").insert({
+        empresa_id: user!.id, tipo, valor: num,
+        categoria: cat, descricao: desc.trim() || null, data,
+      });
+      if (!error) { fecharSheet(); load(); }
     }
     setSaving(false);
   }
 
-  async function deletar(id: string) {
+  async function deletar(e: React.MouseEvent, id: string) {
+    e.stopPropagation();
     if (!confirm("Excluir esta movimentação?")) return;
     await supabase.from("caixa_transacoes").delete().eq("id", id);
     setTrans(p => p.filter(t => t.id !== id));
@@ -159,7 +187,9 @@ export default function CaixaPage() {
               <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2.5">{fmtDia(date)}</p>
               <div className="flex flex-col gap-1">
                 {items.map(t => (
-                  <div key={t.id} className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-sm border border-slate-100 group">
+                  <div key={t.id}
+                    onClick={() => abrirEdicao(t)}
+                    className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-sm border border-slate-100 cursor-pointer active:bg-slate-50 transition">
                     <CategoryIcon categoria={t.categoria} tipo={t.tipo} />
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-bold text-slate-800 truncate">{t.descricao || t.categoria}</p>
@@ -168,8 +198,8 @@ export default function CaixaPage() {
                     <span className={`shrink-0 font-black text-sm ${t.tipo === "entrada" ? "text-emerald-600" : "text-red-500"}`}>
                       {t.tipo === "entrada" ? "+" : "−"}{formatBRL(t.valor)}
                     </span>
-                    <button onClick={() => deletar(t.id)}
-                      className="shrink-0 h-7 w-7 flex items-center justify-center rounded-xl text-slate-200 hover:text-red-500 hover:bg-red-50 transition opacity-0 group-hover:opacity-100">
+                    <button onClick={e => deletar(e, t.id)}
+                      className="shrink-0 h-7 w-7 flex items-center justify-center rounded-xl text-slate-200 hover:text-red-500 hover:bg-red-50 transition">
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
@@ -181,7 +211,7 @@ export default function CaixaPage() {
       )}
 
       {/* FAB */}
-      <button onClick={() => setSheet(true)}
+      <button onClick={abrirNovo}
         className="fixed right-4 z-30 h-14 w-14 rounded-full bg-blue-900 text-white shadow-xl shadow-blue-900/40 flex items-center justify-center hover:bg-blue-800 active:scale-95 transition"
         style={{ bottom: "calc(5.5rem + env(safe-area-inset-bottom, 0px))" }}>
         <Plus className="h-6 w-6" />
@@ -190,16 +220,18 @@ export default function CaixaPage() {
       {/* Sheet */}
       {sheet && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm fade-in"
-          onClick={e => { if (e.target === e.currentTarget) setSheet(false); }}>
+          onClick={e => { if (e.target === e.currentTarget) fecharSheet(); }}>
           <div className="w-full max-w-lg bg-white rounded-t-[2rem] px-6 pt-4 shadow-2xl slide-up overflow-y-auto"
             style={{ maxHeight: "92dvh", paddingBottom: "max(2.5rem, env(safe-area-inset-bottom, 0px))" }}>
 
-            {/* Drag handle */}
             <div className="mx-auto mb-5 h-1 w-12 rounded-full bg-slate-200" />
 
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-xl font-black text-slate-900">Novo lançamento</h2>
-              <button onClick={() => setSheet(false)}
+              <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                {editando && <Pencil className="h-4 w-4 text-slate-400" />}
+                {editando ? "Editar lançamento" : "Novo lançamento"}
+              </h2>
+              <button onClick={fecharSheet}
                 className="h-8 w-8 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-400 transition">
                 <X className="h-4 w-4" />
               </button>
@@ -208,7 +240,7 @@ export default function CaixaPage() {
             {/* Tipo toggle */}
             <div className="flex gap-2 mb-5 p-1 bg-slate-100 rounded-2xl">
               {(["entrada", "saida"] as const).map(t => (
-                <button key={t} onClick={() => { setTipo(t); setCat(""); }}
+                <button key={t} onClick={() => { setTipo(t); if (!editando) setCat(""); }}
                   className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition ${
                     tipo === t
                       ? t === "entrada" ? "bg-emerald-500 text-white shadow-sm" : "bg-red-500 text-white shadow-sm"
@@ -219,7 +251,6 @@ export default function CaixaPage() {
             </div>
 
             <div className="flex flex-col gap-3.5">
-              {/* Valor */}
               <div>
                 <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Valor</label>
                 <div className="relative mt-1">
@@ -230,7 +261,6 @@ export default function CaixaPage() {
                 </div>
               </div>
 
-              {/* Categoria */}
               <div>
                 <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Categoria</label>
                 <select value={cat} onChange={e => setCat(e.target.value)} className={"mt-1 " + INPUT}>
@@ -239,15 +269,15 @@ export default function CaixaPage() {
                 </select>
               </div>
 
-              {/* Descrição */}
               <div>
-                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Descrição <span className="normal-case font-normal">(opcional)</span></label>
+                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                  Descrição <span className="normal-case font-normal">(opcional)</span>
+                </label>
                 <input type="text" value={desc} onChange={e => setDesc(e.target.value)}
                   placeholder="Ex: Venda do almoço"
                   className={"mt-1 " + INPUT} />
               </div>
 
-              {/* Data */}
               <div>
                 <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Data</label>
                 <input type="date" value={data} onChange={e => setData(e.target.value)} className={"mt-1 " + INPUT} />
@@ -255,8 +285,8 @@ export default function CaixaPage() {
 
               <button onClick={salvar} disabled={saving || !valor || !cat}
                 className="mt-1 flex items-center justify-center gap-2 rounded-2xl bg-blue-900 py-4 text-sm font-bold text-white shadow-lg shadow-blue-900/25 hover:bg-blue-800 active:scale-[0.98] transition disabled:opacity-50">
-                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                {saving ? "Salvando…" : "Confirmar lançamento"}
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : editando ? <Pencil className="h-4 w-4" /> : null}
+                {saving ? "Salvando…" : editando ? "Salvar alterações" : "Confirmar lançamento"}
               </button>
             </div>
           </div>
