@@ -8,7 +8,7 @@ import type { Transacao, ContaFixaComStatus } from "@/types";
 import { CategoryIcon } from "@/components/CategoryIcon";
 import {
   TrendingUp, TrendingDown, AlertTriangle, CheckCircle2,
-  CalendarClock, ArrowRight, Clock, Plus,
+  CalendarClock, ArrowRight, Clock,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -72,10 +72,6 @@ export default function DashboardPage() {
           }
           <p className="text-xs text-slate-400">{labelMesAno(mesAno)}</p>
         </div>
-        <Link href="/caixa"
-          className="flex items-center gap-1.5 rounded-2xl bg-blue-900 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-blue-900/25 hover:bg-blue-800 active:scale-95 transition">
-          <Plus className="h-3.5 w-3.5" /> Lançar
-        </Link>
       </div>
 
       {/* Hero — Saldo */}
